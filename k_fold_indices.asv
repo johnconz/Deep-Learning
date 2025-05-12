@@ -1,0 +1,47 @@
+% Author: John Connor Prikkel
+% Date: 10/23/23
+% ECE 595 Project 1
+
+function [train_indices, test_indices] = k_fold_indices(num_images, num_folds)
+% k_fold_indices takes in the number of images/datapoints and number of
+% folds as input. It returns the train and test indices for each of the
+% folds. Utilizing a cell array to save all train and test indices.
+
+    % Generate random indicies equal to number of images ranging from 1 to
+    % num_images, use to randomize test and train_indices
+    r = randperm(num_images, num_images);    
+
+    %Initialize x_idx array
+    x_idx = {1:num_images}
+
+    % 10% as test dataset
+    % Define step size for test_indices array as being equal to num_folds
+    test_indices_step_size = num_folds;
+
+    % Define start point for indexing
+    start_point = 1;
+    
+    % Create n folds
+    for idx = 1:num_folds
+        
+        test_indices{idx} = r(x_idx{start_point : test_indices_step_size : end})
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % NOTE: 'setdiff()' does NOT work with 'double' cell arrays
+        % In order to define train indices array as all other values,
+        % need to used other array functions 'ndgrid', 'numel', 'any', etc.
+        % Ref: https://www.mathworks.com/matlabcentral/answers/498456-set-difference-between-two-cell-arrays
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        [XA,XB] = ndgrid(1:numel(x_idx),1:numel(test_indices));
+        X = arrayfun(@(xA,xB)isequal(x_idx{xA},test_indices{xB}),XA,XB);
+        Z = x_idx(~any(X,2));
+        train_indices{idx} = Z{:}
+
+        % train_indices{idx} = setdiff(x_idx, test_indices)
+        start_point = start_point + 1;
+        
+    
+    end
+
+
+end
